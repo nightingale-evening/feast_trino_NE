@@ -4,9 +4,9 @@ Trino is not included in current [Feast](https://github.com/feast-dev/feast) roa
 
 ## Todo List
 - [DONE, none] ~~Create the open source repo~~
-- [IN PROGRESS, none] ~~First stab at the Trino plugin~~
-- [TODO, none] ~~Add the ability to upload a pandas dataframe~~
-- [TODO, v0.1.0] ~~Pass all integration tests and release a first version of Trino~~
+- [IN PROGRESS, none] First stab at the Trino plugin
+- [TODO, none] Add the ability to upload a pandas dataframe
+- [TODO, v0.1.0] Pass all integration tests and release a first version of Trino
 
 ## Quickstart
 
