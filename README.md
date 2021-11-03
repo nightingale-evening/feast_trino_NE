@@ -16,7 +16,7 @@ Trino is not included in current [Feast](https://github.com/feast-dev/feast) roa
 pip install feast
 ```
 
-#### Install feast-hive
+#### Install feast-trino
 
 - Install stable version
 
@@ -39,14 +39,14 @@ cd feature_repo
 
 #### Edit `feature_store.yaml`
 
-set `offline_store` type to be `feast_hive.TrinoOfflineStore`
+set `offline_store` type to be `feast_trino.TrinoOfflineStore`
 
 ```yaml
 project: ...
 registry: ...
 provider: local
 offline_store:
-    type: feast_hive.TrinoOfflineStore
+    type: feast_trino.TrinoOfflineStore
     host: localhost
     port: 8080
     user: feast
