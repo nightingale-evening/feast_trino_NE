@@ -80,7 +80,6 @@ class TrinoRetrievalJob(RetrievalJob):
         """
         Triggers the execution of a historical feature retrieval query and exports the results to a Trino table.
         Runs for a maximum amount of time specified by the timeout parameter (defaulting to 30 minutes).
-        
         Args:
             timeout: An optional number of seconds for setting the time limit of the QueryJob.
             retry_cadence: An optional number of seconds for setting how long the job should checked for completion.

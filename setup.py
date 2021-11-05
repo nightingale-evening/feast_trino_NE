@@ -11,9 +11,8 @@ INSTALL_REQUIRE = [
     "trino>=0.305.0,<0.400.0",
 ]
 
-TEST_REQUIRE = ["pytest==6.0.0"]
-
-DEV_REQUIRE = [
+CI_REQUIRE = [
+    "pytest==6.0.0",
     "flake8",
     "black==19.10b0",
     "isort>=5",
@@ -37,8 +36,7 @@ setup(
     packages=["feast_trino"],
     install_requires=INSTALL_REQUIRE,
     extras_require={
-        "dev": DEV_REQUIRE + TEST_REQUIRE,
-        "test": TEST_REQUIRE,
+        "ci": CI_REQUIRE,
     },
     keywords=("feast featurestore trino offlinestore"),
     classifiers=[
