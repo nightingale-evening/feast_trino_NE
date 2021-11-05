@@ -118,9 +118,12 @@ The rest are as same as [Feast Quickstart](https://docs.feast.dev/quickstart#gen
 #### Developing
 
 ```shell
-git clone https://github.com/baineng/feast-trino.git
+git clone https://github.com/shopify/feast-trino.git
 cd feast-trino
 # creating virtual env ...
+python -v venv venv/
+source venv/bin/activate
+
 pip install -e ".[dev]"
 
 # before commit
