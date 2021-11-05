@@ -1,10 +1,13 @@
-from datetime import datetime, date
+import uuid
+from datetime import date, datetime
 from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow
-import uuid
+from pydantic import StrictStr
+from pydantic.typing import Literal
+
 from feast.data_source import DataSource
 from feast.errors import InvalidEntityType
 from feast.feature_view import DUMMY_ENTITY_ID, DUMMY_ENTITY_VAL, FeatureView
@@ -13,11 +16,8 @@ from feast.infra.offline_stores.offline_store import OfflineStore, RetrievalJob
 from feast.on_demand_feature_view import OnDemandFeatureView
 from feast.registry import Registry
 from feast.repo_config import FeastConfigBaseModel, RepoConfig
-from pydantic import StrictStr
-from pydantic.typing import Literal
-
 from feast_trino.trino_source import TrinoSource
-from feast_trino.trino_utils import Query, Trino
+from feast_trino.trino_utils import Trino
 
 
 class TrinoOfflineStoreConfig(FeastConfigBaseModel):
@@ -42,7 +42,7 @@ class TrinoOfflineStoreConfig(FeastConfigBaseModel):
 class TrinoRetrievalJob(RetrievalJob):
     def __init__(
         self,
-        query: Query,
+        query: str,
         client: Trino,
         config: RepoConfig,
         full_feature_names: bool,
@@ -71,16 +71,12 @@ class TrinoRetrievalJob(RetrievalJob):
         """Return payrrow dataset as synchronously including on demand transforms"""
         results = self._client.execute_query(query_text=self._query)
         return pyarrow.table(data=results.data, columns=results.columns_names)
-    
+
     def to_sql(self) -> str:
         """Returns the SQL query that will be executed in Trino to build the historical feature table"""
         return self._query
 
-    def to_trino(
-            self,
-            timeout: int = 1800,
-            retry_cadence: int = 10,
-        ) -> Optional[str]:
+    def to_trino(self, timeout: int = 1800, retry_cadence: int = 10,) -> Optional[str]:
         """
         Triggers the execution of a historical feature retrieval query and exports the results to a Trino table.
         Runs for a maximum amount of time specified by the timeout parameter (defaulting to 30 minutes).
@@ -93,7 +89,7 @@ class TrinoRetrievalJob(RetrievalJob):
         """
         today = date.today().strftime("%Y%m%d")
         rand_id = str(uuid.uuid4())[:7]
-        destination_table = f"{self._client.project}.{self._config.offline_store.dataset}.historical_{today}_{rand_id}"
+        destination_table = f"{self._client.catalog}.{self._config.offline_store.dataset}.historical_{today}_{rand_id}"
         query = f"CREATE TABLE {destination_table} AS ({self._query})"
         self._client.execute_query(query_text=query)
         return destination_table
@@ -112,9 +108,13 @@ class TrinoOfflineStore(OfflineStore):
         end_date: datetime,
     ) -> TrinoRetrievalJob:
         if not isinstance(data_source, TrinoSource):
-            raise ValueError(f"The data_source object is not a TrinoSource but is instead '{type(data_source)}'")
+            raise ValueError(
+                f"The data_source object is not a TrinoSource but is instead '{type(data_source)}'"
+            )
         if not isinstance(config.offline_store, TrinoOfflineStoreConfig):
-            raise ValueError(f"The config.offline_store object is not a TrinoOfflineStoreConfig but is instead '{type(config.offline_store)}'")
+            raise ValueError(
+                f"The config.offline_store object is not a TrinoOfflineStoreConfig but is instead '{type(config.offline_store)}'"
+            )
 
         from_expression = data_source.get_table_query_string()
 
@@ -165,23 +165,28 @@ class TrinoOfflineStore(OfflineStore):
         full_feature_names: bool = False,
     ) -> TrinoRetrievalJob:
         if not isinstance(config.offline_store, TrinoOfflineStoreConfig):
-            raise ValueError("This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'")
-        
+            raise ValueError(
+                "This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
+            )
+
         client = _get_trino_client(config=config)
 
         table_reference = _get_table_reference_for_new_entity(
-            catalog=config.offline_store.catalog, dataset_name=config.offline_store.dataset
+            catalog=config.offline_store.catalog,
+            dataset_name=config.offline_store.dataset,
         )
 
         entity_schema = _upload_entity_df_and_get_entity_schema(
-            client=client,
-            table_name=table_reference,
-            entity_df=entity_df,
+            client=client, table_name=table_reference, entity_df=entity_df,
         )
 
-        entity_df_event_timestamp_col = offline_utils.infer_event_timestamp_from_entity_df(entity_schema)
+        entity_df_event_timestamp_col = offline_utils.infer_event_timestamp_from_entity_df(
+            entity_schema
+        )
 
-        expected_join_keys = offline_utils.get_expected_join_keys(project, feature_views, registry)
+        expected_join_keys = offline_utils.get_expected_join_keys(
+            project, feature_views, registry
+        )
 
         offline_utils.assert_expected_columns_in_entity_df(
             entity_schema, expected_join_keys, entity_df_event_timestamp_col
@@ -189,21 +194,18 @@ class TrinoOfflineStore(OfflineStore):
 
         # Build a query context containing all information required to template the Trino SQL query
         query_context = offline_utils.get_feature_view_query_context(
-            feature_refs,
-            feature_views,
-            registry,
-            project,
+            feature_refs, feature_views, registry, project,
         )
 
         # Generate the Trino SQL query from the query context
         query = offline_utils.build_point_in_time_query(
-                query_context,
-                left_table_query_string=table_reference,
-                entity_df_event_timestamp_col=entity_df_event_timestamp_col,
-                entity_df_columns=entity_schema.keys(),
-                query_template=MULTIPLE_FEATURE_VIEW_POINT_IN_TIME_JOIN,
-                full_feature_names=full_feature_names,
-            )
+            query_context,
+            left_table_query_string=table_reference,
+            entity_df_event_timestamp_col=entity_df_event_timestamp_col,
+            entity_df_columns=entity_schema.keys(),
+            query_template=MULTIPLE_FEATURE_VIEW_POINT_IN_TIME_JOIN,
+            full_feature_names=full_feature_names,
+        )
 
         return TrinoRetrievalJob(
             query=query,
@@ -223,9 +225,7 @@ def _get_table_reference_for_new_entity(catalog: str, dataset_name: str) -> str:
 
 
 def _upload_entity_df_and_get_entity_schema(
-    client: Trino,
-    table_name: str,
-    entity_df: Union[pd.DataFrame, str],
+    client: Trino, table_name: str, entity_df: Union[pd.DataFrame, str],
 ) -> Dict[str, np.dtype]:
     """Uploads a Pandas entity dataframe into a Trino table and returns the resulting table"""
     if type(entity_df) is str:
@@ -233,10 +233,14 @@ def _upload_entity_df_and_get_entity_schema(
 
         results = client.execute_query(f"SELECT * FROM {table_name} LIMIT 1")
 
-        limited_entity_df = pd.DataFrame(data=results.data, columns=results.columns_names)
+        limited_entity_df = pd.DataFrame(
+            data=results.data, columns=results.columns_names
+        )
         for col_name, col_type in results.schema.items():
             if col_type == "timestamp":
-                limited_entity_df[col_name] = pd.to_datetime(limited_entity_df[col_name])
+                limited_entity_df[col_name] = pd.to_datetime(
+                    limited_entity_df[col_name]
+                )
         entity_schema = dict(zip(limited_entity_df.columns, limited_entity_df.dtypes))
 
         return entity_schema

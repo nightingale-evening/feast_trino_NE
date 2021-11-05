@@ -5,7 +5,6 @@ from feast import ValueType
 from feast.data_source import DataSource
 from feast.protos.feast.core.DataSource_pb2 import DataSource as DataSourceProto
 from feast.repo_config import RepoConfig
-
 from feast_trino.trino_type_map import trino_to_feast_value_type
 
 
@@ -57,7 +56,9 @@ class TrinoOptions:
         """
         trino_configuration = pickle.loads(trino_options_proto.configuration)
 
-        trino_options = self(table_ref=trino_configuration.table_ref, query=trino_configuration.query)
+        trino_options = self(
+            table_ref=trino_configuration.table_ref, query=trino_configuration.query
+        )
 
         return trino_options
 
@@ -73,7 +74,7 @@ class TrinoOptions:
         )
 
         return trino_options_proto
-    
+
 
 class TrinoSource(DataSource):
     def __init__(
@@ -91,12 +92,14 @@ class TrinoSource(DataSource):
             field_mapping,
             date_partition_column,
         )
-        
+
         self._trino_options = TrinoOptions(table_ref=table_ref, query=query)
 
     def __eq__(self, other):
         if not isinstance(other, TrinoSource):
-            raise TypeError("Comparisons should only involve TrinoSource class objects.")
+            raise TypeError(
+                "Comparisons should only involve TrinoSource class objects."
+            )
 
         return (
             self.trino_options.table_ref == other.trino_options.table_ref
@@ -166,5 +169,7 @@ class TrinoSource(DataSource):
     def source_datatype_to_feast_value_type() -> Callable[[str], ValueType]:
         return trino_to_feast_value_type
 
-    def get_table_column_names_and_types(self, config: RepoConfig) -> Iterable[Tuple[str, str]]:
-        NotImplementedError
+    def get_table_column_names_and_types(
+        self, config: RepoConfig
+    ) -> Iterable[Tuple[str, str]]:
+        raise NotImplementedError
