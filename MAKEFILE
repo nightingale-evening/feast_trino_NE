@@ -5,16 +5,16 @@ ROOT_DIR 	:= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 format:
 	# Sort
-	cd ${ROOT_DIR}; isort feast_trino/
+	cd ${ROOT_DIR}; python -m isort feast_trino/
 
 	# Format
-	cd ${ROOT_DIR}; black --target-version py37 feast_trino tests
+	cd ${ROOT_DIR}; python -m black --target-version py37 feast_trino
 
 lint:
-	cd ${ROOT_DIR}; mypy feast_trino/ tests/
-	cd ${ROOT_DIR}; isort feast_trino/ tests/ --check-only
-	cd ${ROOT_DIR}; flake8 feast_trino/ tests/
-	cd ${ROOT_DIR}; black --check feast_trino tests
+	cd ${ROOT_DIR}; python -m mypy feast_trino/
+	cd ${ROOT_DIR}; python -m isort feast_trino/ --check-only
+	cd ${ROOT_DIR}; python -m flake8 feast_trino/
+	cd ${ROOT_DIR}; python -m black --check feast_trino 
 
 build:
 	rm -rf dist/*

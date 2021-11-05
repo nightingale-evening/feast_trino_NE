@@ -4,6 +4,7 @@ import pyarrow as pa
 
 from feast import ValueType
 
+
 def trino_to_feast_value_type(trino_type_as_str: str) -> ValueType:
     type_map: Dict[str, ValueType] = {
         "tinyint": ValueType.INT32,

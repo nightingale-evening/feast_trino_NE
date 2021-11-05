@@ -7,11 +7,11 @@ with open("README.md", "r", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 INSTALL_REQUIRE = [
-    "feast>=0.12.0",
+    "feast>=0.12.0,<1.0.0",
     "trino>=0.305.0,<0.400.0",
 ]
 
-TEST_REQUIRE = ["pytest==6.0.0", "pytest-xdist", "assertpy==1.1"]
+TEST_REQUIRE = ["pytest==6.0.0"]
 
 DEV_REQUIRE = [
     "flake8",

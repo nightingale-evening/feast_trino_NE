@@ -1,3 +1,11 @@
+# Dev environment
+.dev/
+.mypy_cache/
+.shadowenv.d/
+build/
+dist/
+feast_trino.egg-info/
+
 *.pyc
 .idea
 .DS_Store

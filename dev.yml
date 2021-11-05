@@ -1,0 +1,9 @@
+name: feast-trino
+type: python
+
+up:
+  - python: 3.8.8
+  - custom:
+      name: Install the dependencies locally
+      met?: pip install -e ".[dev]"
+      meet: "True"
