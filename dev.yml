@@ -5,5 +5,5 @@ up:
   - python: 3.8.8
   - custom:
       name: Install the dependencies locally
-      met?: pip install -e ".[dev]"
+      met?: make install-ci-dependencies
       meet: "True"
