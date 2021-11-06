@@ -1,0 +1,4 @@
+# Each line is a file pattern followed by one or more owners.
+# https://help.github.com/en/articles/about-code-owners
+
+*           @feast-dev/maintainers @Shopify/ml-platform-team
