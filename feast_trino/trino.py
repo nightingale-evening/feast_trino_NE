@@ -244,7 +244,14 @@ def _upload_entity_df_and_get_entity_schema(
 
         return entity_schema
     elif isinstance(entity_df, pd.DataFrame):
-        raise InvalidEntityType(type(entity_df))
+        # Placeholder till it's part of the configuration of Trino
+        from feast_trino.connectors.memory import upload_pandas_dataframe_to_trino
+
+        upload_pandas_dataframe_to_trino(
+            client=client, df=entity_df, table_ref=table_name
+        )
+        entity_schema = dict(zip(entity_df.columns, entity_df.dtypes))
+        return entity_schema
     else:
         raise InvalidEntityType(type(entity_df))
 
