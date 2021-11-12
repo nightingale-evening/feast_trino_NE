@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Optional
 import trino
 from trino.dbapi import Cursor
 
-trino.constants.HEADER_USER = "X-Presto-User"
-trino.constants.HEADER_SCHEMA = "X-Presto-Schema"
-trino.constants.HEADER_CATALOG = "X-Presto-Catalog"
+trino.constants.HEADER_USER = "X-Trino-User"
+trino.constants.HEADER_SCHEMA = "X-Trino-Schema"
+trino.constants.HEADER_CATALOG = "X-Trino-Catalog"
 
 
 class QueryStatus(Enum):
