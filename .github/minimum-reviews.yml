@@ -2,7 +2,7 @@
 reviewsUntilReady: 1
 
 # Number of changes in the pull request to start enforcing the reviewsUntilReady rule
-changesThreshold: 100
+changesThreshold: 1
 
 # Message to display when the commit status passes
 readyMessage: 'No pending reviews'
