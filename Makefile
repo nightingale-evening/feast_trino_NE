@@ -2,6 +2,8 @@
 .PHONY: build
 
 ROOT_DIR 	:= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+FEAST_VERSION ?= v0.15.1
+TRINO_VERSION ?= 364
 
 format:
 	# Sort
@@ -36,7 +38,7 @@ build:
 install-feast-submodule:
 	cd ${ROOT_DIR}; git submodule add --force https://github.com/feast-dev/feast.git feast
 	cd ${ROOT_DIR}/feast; git fetch --all --tags
-	cd ${ROOT_DIR}/feast; git reset --hard tags/v0.15.1
+	cd ${ROOT_DIR}/feast; git reset --hard tags/${FEAST_VERSION}
 	cd ${ROOT_DIR}/feast; pip install -e "sdk/python[ci]"
 	-cd ${ROOT_DIR}; git rm --cached -f feast/ .gitmodules
 
@@ -44,7 +46,7 @@ install-ci-dependencies:
 	pip install -e ".[ci]"
 
 start-local-cluster:
-	docker run --detach --rm -p 8080:8080 --name trino -v ${ROOT_DIR}/config/catalog/:/etc/catalog/:ro trinodb/trino:364
+	docker run --detach --rm -p 8080:8080 --name trino -v ${ROOT_DIR}/config/catalog/:/etc/catalog/:ro trinodb/trino:${TRINO_VERSION}
 	sleep 15
 
 kill-local-cluster:
