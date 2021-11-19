@@ -7,8 +7,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+import numpy as np
+import pandas as pd
+import pyarrow as pa
 import trino
 from trino.dbapi import Cursor
+
+from feast_trino.trino_type_map import trino_to_pa_value_type
 
 trino.constants.HEADER_USER = "X-Trino-User"
 trino.constants.HEADER_SCHEMA = "X-Trino-Schema"
@@ -111,3 +116,19 @@ class Results:
     @property
     def schema(self) -> Dict[str, str]:
         return {column["name"]: column["type"] for column in self.columns}
+
+    @property
+    def pyarrow_schema(self) -> pa.Schema:
+        return pa.schema(
+            [
+                pa.field(column["name"], trino_to_pa_value_type(column["type"]))
+                for column in self.columns
+            ]
+        )
+
+    def to_dataframe(self) -> pd.DataFrame:
+        df = pd.DataFrame(data=self.data, columns=self.columns_names)
+        for col_name, col_type in self.schema.items():
+            if col_type.startswith("timestamp"):
+                df[col_name] = pd.to_datetime(df[col_name])
+        return df.fillna(np.nan)

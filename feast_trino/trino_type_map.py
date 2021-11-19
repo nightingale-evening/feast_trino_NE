@@ -29,7 +29,7 @@ def pa_to_trino_value_type(pa_type_as_str: str) -> str:
     pa_type_as_str = pa_type_as_str.lower()
     trino_type = "{}"
     if pa_type_as_str.startswith("list"):
-        trino_type = "array['{}']"
+        trino_type = "array<{}>"
         pa_type_as_str = re.search(r"^list<item:\s(.+)>$", pa_type_as_str).group(1)
 
     if pa_type_as_str.startswith("date"):
@@ -55,7 +55,7 @@ def pa_to_trino_value_type(pa_type_as_str: str) -> str:
         "uint16": "int",
         "uint32": "bigint",
         "uint64": "bigint",
-        "float": "decimal",
+        "float": "double",
         "double": "double",
         "binary": "binary",
         "string": "varchar",
@@ -71,16 +71,19 @@ _TRINO_TO_PA_TYPE_MAP = {
     "smallint": pa.int16(),
     "integer": pa.int32(),
     "bigint": pa.int64(),
-    "decimal": pa.float32(),
     "double": pa.float64(),
     "binary": pa.binary(),
     "char": pa.string(),
-    "varchar": pa.string(),
 }
 
 
 def trino_to_pa_value_type(trino_type_as_str: str) -> pa.DataType:
     trino_type_as_str = trino_type_as_str.lower()
+
+    _is_list: bool = False
+    if trino_type_as_str.startswith("array"):
+        _is_list = True
+        trino_type_as_str = re.search(r"^array\((\w+)\)$", trino_type_as_str).group(1)
 
     if trino_type_as_str.startswith("decimal"):
         search_precision = re.search(
@@ -89,11 +92,20 @@ def trino_to_pa_value_type(trino_type_as_str: str) -> pa.DataType:
         if search_precision:
             precision = int(search_precision.group(1))
             if precision > 32:
-                return pa.float64()
+                pa_type = pa.float64()
             else:
-                return pa.float32()
+                pa_type = pa.float32()
 
-    if trino_type_as_str.startswith("timestamp"):
-        return pa.timestamp("us")
+    elif trino_type_as_str.startswith("timestamp"):
+        pa_type = pa.timestamp("us")
 
-    return _TRINO_TO_PA_TYPE_MAP[trino_type_as_str]
+    elif trino_type_as_str.startswith("varchar"):
+        pa_type = pa.string()
+
+    else:
+        pa_type = _TRINO_TO_PA_TYPE_MAP[trino_type_as_str]
+
+    if _is_list:
+        return pa.list_(pa_type)
+    else:
+        return pa_type
