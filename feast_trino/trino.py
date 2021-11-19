@@ -23,7 +23,9 @@ from feast_trino.trino_utils import Trino
 class TrinoOfflineStoreConfig(FeastConfigBaseModel):
     """ Online store config for Trino """
 
-    type: Literal["trino"] = "trino"
+    type: Literal[
+        "feast_trino.trino.TrinoOfflineStore"
+    ] = "feast_trino.trino.TrinoOfflineStore"
     """ Offline store type selector """
 
     host: StrictStr
@@ -46,13 +48,15 @@ class TrinoRetrievalJob(RetrievalJob):
         client: Trino,
         config: RepoConfig,
         full_feature_names: bool,
-        on_demand_feature_views: Optional[List[OnDemandFeatureView]],
+        on_demand_feature_views: Optional[List[OnDemandFeatureView]] = None,
     ):
         self._query = query
         self._client = client
         self._config = config
         self._full_feature_names = full_feature_names
-        self._on_demand_feature_views = on_demand_feature_views
+        self._on_demand_feature_views = (
+            None if on_demand_feature_views == [] else on_demand_feature_views
+        )  # See https://github.com/feast-dev/feast/issues/2072
 
     @property
     def full_feature_names(self) -> bool:
@@ -65,12 +69,14 @@ class TrinoRetrievalJob(RetrievalJob):
     def _to_df_internal(self) -> pd.DataFrame:
         """Return dataset as Pandas DataFrame synchronously including on demand transforms"""
         results = self._client.execute_query(query_text=self._query)
-        return pd.DataFrame(data=results.data, columns=results.columns_names)
+        self.pyarrow_schema = results.pyarrow_schema
+        return results.to_dataframe()
 
     def _to_arrow_internal(self) -> pyarrow.Table:
         """Return payrrow dataset as synchronously including on demand transforms"""
-        results = self._client.execute_query(query_text=self._query)
-        return pyarrow.table(data=results.data, columns=results.columns_names)
+        return pyarrow.Table.from_pandas(
+            self._to_df_internal(), schema=self.pyarrow_schema
+        )
 
     def to_sql(self) -> str:
         """Returns the SQL query that will be executed in Trino to build the historical feature table"""
@@ -86,6 +92,7 @@ class TrinoRetrievalJob(RetrievalJob):
         Returns:
             Returns the destination table name.
         """
+        # TODO: Implement the timeout logic
         today = date.today().strftime("%Y%m%d")
         rand_id = str(uuid.uuid4())[:7]
         destination_table = f"{self._client.catalog}.{self._config.offline_store.dataset}.historical_{today}_{rand_id}"
@@ -144,6 +151,7 @@ class TrinoOfflineStore(OfflineStore):
             )
             WHERE _feast_row = 1
             """
+
         # When materializing a single feature view, we don't need full feature names. On demand transforms aren't materialized
         return TrinoRetrievalJob(
             query=query,
@@ -165,7 +173,7 @@ class TrinoOfflineStore(OfflineStore):
     ) -> TrinoRetrievalJob:
         if not isinstance(config.offline_store, TrinoOfflineStoreConfig):
             raise ValueError(
-                "This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
+                f"This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
             )
 
         client = _get_trino_client(config=config)
@@ -244,7 +252,7 @@ def _upload_entity_df_and_get_entity_schema(
 
         return entity_schema
     elif isinstance(entity_df, pd.DataFrame):
-        # Placeholder till it's part of the configuration of Trino
+        # TODO: Placeholder till it's part of the configuration of Trino
         from feast_trino.connectors.memory import upload_pandas_dataframe_to_trino
 
         upload_pandas_dataframe_to_trino(
@@ -255,8 +263,7 @@ def _upload_entity_df_and_get_entity_schema(
     else:
         raise InvalidEntityType(type(entity_df))
 
-    # Ensure that the table expires after some time
-    # NotImplemented
+    # TODO: Ensure that the table expires after some time
 
 
 def _get_trino_client(config: RepoConfig) -> Trino:

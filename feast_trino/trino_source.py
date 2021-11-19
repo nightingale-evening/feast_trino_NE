@@ -6,6 +6,7 @@ from feast.data_source import DataSource
 from feast.protos.feast.core.DataSource_pb2 import DataSource as DataSourceProto
 from feast.repo_config import RepoConfig
 from feast_trino.trino_type_map import trino_to_feast_value_type
+from feast_trino.trino_utils import Trino
 
 
 class TrinoOptions:
@@ -172,4 +173,21 @@ class TrinoSource(DataSource):
     def get_table_column_names_and_types(
         self, config: RepoConfig
     ) -> Iterable[Tuple[str, str]]:
-        raise NotImplementedError
+        client = Trino(
+            user="user",
+            catalog=config.offline_store.catalog,
+            host=config.offline_store.host,
+            port=config.offline_store.port,
+        )
+        if self.table_ref is not None:
+            table_schema = client.execute_query(
+                f"SELECT * FROM {self.table_ref} LIMIT 1"
+            ).schema
+        else:
+            table_schema = client.execute_query(
+                f"SELECT * FROM ({self.query}) LIMIT 1"
+            ).schema
+
+        return [
+            (field_name, field_type) for field_name, field_type in table_schema.items()
+        ]

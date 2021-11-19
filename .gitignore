@@ -4,8 +4,10 @@
 .shadowenv.d/
 build/
 dist/
+feast/
 feast_trino.egg-info/
 
 *.pyc
 .idea
 .DS_Store
+.gitmodules

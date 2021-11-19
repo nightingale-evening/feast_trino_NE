@@ -19,9 +19,26 @@ lint:
 test:
 	cd ${ROOT_DIR}; python -m pytest tests/
 
+test-python-universal:
+	-mv ${ROOT_DIR}/tests ${ROOT_DIR}/tests_old
+	-cd ${ROOT_DIR}; FULL_REPO_CONFIGS_MODULE=feast_trino.feast_tests FEAST_USAGE=False IS_TEST=True python -m pytest --integration --universal ${ROOT_DIR}/feast/sdk/python/tests/
+	-mv ${ROOT_DIR}/tests_old ${ROOT_DIR}/tests
+
+test-python-universal-ci:
+	mv ${ROOT_DIR}/tests ${ROOT_DIR}/tests_old
+	cd ${ROOT_DIR}; FULL_REPO_CONFIGS_MODULE=feast_trino.feast_tests FEAST_USAGE=False IS_TEST=True python -m pytest --integration --universal ${ROOT_DIR}/feast/sdk/python/tests
+	mv ${ROOT_DIR}/tests_old ${ROOT_DIR}/tests
+
 build:
 	rm -rf dist/*
 	python setup.py sdist bdist_wheel
+
+install-feast-submodule:
+	cd ${ROOT_DIR}; git submodule add --force https://github.com/feast-dev/feast.git feast
+	cd ${ROOT_DIR}/feast; git fetch --all --tags
+	cd ${ROOT_DIR}/feast; git reset --hard tags/v0.15.1
+	cd ${ROOT_DIR}/feast; pip install -e "sdk/python[ci]"
+	-cd ${ROOT_DIR}; git rm --cached -f feast/ .gitmodules
 
 install-ci-dependencies:
 	pip install -e ".[ci]"
