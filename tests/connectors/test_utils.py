@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -21,6 +22,8 @@ def input_df():
             "datetime_value": pd.to_datetime(
                 ["2021-01-01", "2021-01-02", "2021-01-03"]
             ),
+            "none_value": [None, None, None],
+            "np_nan_value": [np.nan, np.nan, np.nan],
         }
     )
 
@@ -32,13 +35,15 @@ def test_pyarrow_schema_from_dataframe(input_df):
         "int_value": "bigint",
         "float_value": "double",
         "datetime_value": "timestamp",
+        "none_value": "null",
+        "np_nan_value": "double",
     }
 
 
 def test_trino_table_schema_from_dataframe(input_df):
     assert (
         trino_table_schema_from_dataframe(df=input_df)
-        == "id bigint,str_value varchar,int_value bigint,float_value double,datetime_value timestamp"
+        == "id bigint,str_value varchar,int_value bigint,float_value double,datetime_value timestamp,none_value null,np_nan_value double"
     )
 
 
@@ -54,7 +59,7 @@ def test_pandas_dataframe_fix_batches(input_df):
 def test_format_pandas_row(input_df):
     assert (
         format_pandas_row(df=input_df[:1])
-        == "(1,'a',4,7.0,TIMESTAMP '2021-01-01 00:00:00.000000')"
+        == "(1,'a',4,7.0,TIMESTAMP '2021-01-01 00:00:00.000000',NULL,NULL)"
     )
 
 
