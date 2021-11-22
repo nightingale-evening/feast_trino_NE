@@ -4,17 +4,20 @@ Trino is not included in current [Feast](https://github.com/feast-dev/feast) roa
 
 ## Todo List
 - [DONE, none] ~~Create the open source repo~~
-- [IN PROGRESS, none] First stab at the Trino plugin
-- [TODO, none] Add the ability to upload a pandas dataframe
-- [TODO, v0.1.0] Pass all integration tests and release a first version of Trino
+- [Done, none] First stab at the Trino plugin
+- [Done, none] Add the ability to upload a pandas dataframe
+- [Done, none] Pass all integration tests and release a first version of Trino
+- [TODO, none] Add another connector like Hive
+- [TODO, v0.1.0-beta] Publish a beta release in Pypi
+
+## Version compatibilities
+Here is how the current feast-trino plugin has been tested
+
+| Feast-trino | Python | Feast  | Trino |
+|-------------|--------|--------|-------|
+| Beta        | 3.7    | 0.15.1 | 364   |
 
 ## Quickstart
-
-#### Install feast
-
-```shell
-pip install feast
-```
 
 #### Install feast-trino
 
@@ -124,16 +127,37 @@ cd feast-trino
 python -v venv venv/
 source venv/bin/activate
 
-pip install -e ".[dev]"
+make build
 
 # before commit
 make format
 make lint
 ```
 
-#### Testing
+#### Testing unit test
 
 ```shell
-pip install -e ".[test]"
-pytest -n 6 --host=localhost --port=8080 --user=feast --catalog=default
+make start-local-cluster
+make test
+make kill-local-cluster
 ```
+
+__Note: You can visit http://localhost:8080/ui/ to access the Web UI of Trino. This makes it easy to look for queries.__
+
+#### Testing against Feast universal suite
+
+```shell
+make install-feast-submodule
+make start-local-cluster
+make test-python-universal
+make kill-local-cluster
+```
+
+#### Using different versions of Feast or Trino
+The [makefile](./Makefile) contains the following default values:
+- FEAST_VERSION: v0.15.1
+- TRINO_VERSION: 364
+
+Thus, `make install-feast-submodule` will automatically compile Feast `v0.15.1`. If you want to try another version like `v0.14.1`, you just need to run `make install-feast-submodule FEAST_VERSION=v0.14.1`
+
+Same applies for TRINO_VERSION when you start the local cluster `make start-local-cluster TRINO_VERSION=XXX`
