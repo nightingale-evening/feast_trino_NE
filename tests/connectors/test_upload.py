@@ -1,6 +1,6 @@
 import pandas as pd
 
-from feast_trino.connectors.memory import upload_pandas_dataframe_to_trino
+from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 
 
 def test_base_case(client, trino_schema):
@@ -12,7 +12,12 @@ def test_base_case(client, trino_schema):
         data={"id": [1, 2, 3], "value": [4, 5, 6], "str": ["a", "b", "c"]}
     )
 
-    upload_pandas_dataframe_to_trino(client=client, df=input_df, table_ref=table_ref)
+    upload_pandas_dataframe_to_trino(
+        client=client,
+        df=input_df,
+        table_ref=table_ref,
+        connector_args={"type": "memory"},
+    )
 
     actual_results = client.execute_query(f"SELECT * FROM {table_ref}")
     actual_df = pd.DataFrame(
