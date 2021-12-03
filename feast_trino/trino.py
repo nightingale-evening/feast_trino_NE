@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ from feast.infra.offline_stores.offline_store import OfflineStore, RetrievalJob
 from feast.on_demand_feature_view import OnDemandFeatureView
 from feast.registry import Registry
 from feast.repo_config import FeastConfigBaseModel, RepoConfig
+from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 from feast_trino.trino_source import TrinoSource
 from feast_trino.trino_utils import Trino
 
@@ -36,6 +37,15 @@ class TrinoOfflineStoreConfig(FeastConfigBaseModel):
 
     catalog: StrictStr
     """ Catalog of the Trino cluster """
+
+    connector: Dict[str, Any]
+    """
+    Trino connector to use as well as potential extra parameters.
+    Needs to contain at least the path, for example
+    {"type": "bigquery"}
+    or
+    {"type": "hive", "file_format": "parquet"}
+    """
 
     dataset: StrictStr = "feast"
     """ (optional) Trino Dataset name for temporary tables """
@@ -184,7 +194,10 @@ class TrinoOfflineStore(OfflineStore):
         )
 
         entity_schema = _upload_entity_df_and_get_entity_schema(
-            client=client, table_name=table_reference, entity_df=entity_df,
+            client=client,
+            table_name=table_reference,
+            entity_df=entity_df,
+            connector=config.offline_store.connector,
         )
 
         entity_df_event_timestamp_col = offline_utils.infer_event_timestamp_from_entity_df(
@@ -232,7 +245,10 @@ def _get_table_reference_for_new_entity(catalog: str, dataset_name: str) -> str:
 
 
 def _upload_entity_df_and_get_entity_schema(
-    client: Trino, table_name: str, entity_df: Union[pd.DataFrame, str],
+    client: Trino,
+    table_name: str,
+    entity_df: Union[pd.DataFrame, str],
+    connector: Dict[str, Any],
 ) -> Dict[str, np.dtype]:
     """Uploads a Pandas entity dataframe into a Trino table and returns the resulting table"""
     if type(entity_df) is str:
@@ -252,11 +268,8 @@ def _upload_entity_df_and_get_entity_schema(
 
         return entity_schema
     elif isinstance(entity_df, pd.DataFrame):
-        # TODO: Placeholder till it's part of the configuration of Trino
-        from feast_trino.connectors.memory import upload_pandas_dataframe_to_trino
-
         upload_pandas_dataframe_to_trino(
-            client=client, df=entity_df, table_ref=table_name
+            client=client, df=entity_df, table_ref=table_name, connector_args=connector
         )
         entity_schema = dict(zip(entity_df.columns, entity_df.dtypes))
         return entity_schema

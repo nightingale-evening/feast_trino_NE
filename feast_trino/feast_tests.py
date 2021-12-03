@@ -4,7 +4,7 @@ import pandas as pd
 
 from feast.data_source import DataSource
 from feast.repo_config import FeastConfigBaseModel
-from feast_trino.connectors.memory import upload_pandas_dataframe_to_trino
+from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 from feast_trino.trino import TrinoOfflineStoreConfig
 from feast_trino.trino_source import TrinoSource
 from feast_trino.trino_utils import Trino
@@ -36,7 +36,12 @@ class TrinoSourceCreator(DataSourceCreator):
         )
         self.client.execute_query(f"DROP TABLE IF EXISTS {table_ref}")
 
-        upload_pandas_dataframe_to_trino(client=self.client, df=df, table_ref=table_ref)
+        upload_pandas_dataframe_to_trino(
+            client=self.client,
+            df=df,
+            table_ref=table_ref,
+            connector_args={"type": "memory"},
+        )
         self.tables_created.append(table_ref)
 
         return TrinoSource(
@@ -52,7 +57,11 @@ class TrinoSourceCreator(DataSourceCreator):
 
     def create_offline_store_config(self) -> FeastConfigBaseModel:
         return TrinoOfflineStoreConfig(
-            host="localhost", port=8080, catalog="memory", dataset=self.project_name
+            host="localhost",
+            port=8080,
+            catalog="memory",
+            dataset=self.project_name,
+            connector={"type": "memory"},
         )
 
     def teardown(self):
