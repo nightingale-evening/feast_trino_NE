@@ -2,8 +2,15 @@ name: feast-trino
 type: python
 
 up:
-  - python: 3.8.8
+  - python: 3.9.1
   - custom:
       name: Install the dependencies locally
       met?: make install-ci-dependencies
       meet: "True"
+  - custom:
+     name: Reinstall protobuf with M1 compatibility
+     met?: |
+      export CFLAGS="-I$(brew --prefix protobuf)/include"
+      export LDFLAGS="-L$(brew --prefix protobuf)/lib"
+      pip install protobuf==3.17 --force-reinstall --no-deps --install-option="--cpp_implementation"
+     meet: "true"
