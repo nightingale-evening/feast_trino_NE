@@ -11,11 +11,14 @@ Trino is not included in current [Feast](https://github.com/feast-dev/feast) roa
 - [TODO, v0.1.0-beta] Publish a beta release in Pypi
 
 ## Version compatibilities
-Here is how the current feast-trino plugin has been tested
+The feast-trino plugin is tested on the following versions of python [3.7, 3.8, 3.9]
 
-| Feast-trino | Python | Feast  | Trino |
-|-------------|--------|--------|-------|
-| Beta        | 3.7    | 0.15.1 | 364   |
+Here is also how the current feast-trino plugin has been tested against different versions of Feast and Trino
+
+| Feast-trino | Feast  | Trino |
+|-------------|--------|-------|
+| Beta        | 0.15.* | 364   |
+| Beta        | 0.16.* | 364   |
 
 ## Quickstart
 

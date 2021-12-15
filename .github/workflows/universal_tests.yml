@@ -4,6 +4,10 @@ on: [pull_request]
 
 jobs:
   universal-tests:
+    strategy:
+      matrix:
+        feast-version: [ v0.15.1, v0.16.1 ]
+
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
@@ -33,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: make install-ci-dependencies 
       - name: Install feast
-        run: make install-feast-submodule
+        run: make install-feast-submodule FEAST_VERSION=${{ matrix.feast-version }}
       - name: Start local Trino cluster using Docker
         run: make start-local-cluster
       - name: Feast universal tests
