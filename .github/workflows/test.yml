@@ -4,6 +4,12 @@ on: [pull_request]
 
 jobs:
   unit-tests:
+    strategy:
+      matrix:
+        python-version: [ 3.7, 3.8, 3.9 ]
+    env:
+      PYTHON: ${{ matrix.python-version }}
+    
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
@@ -11,7 +17,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: ${{ matrix.python-version }}
           architecture: x64
       - name: Upgrade pip version
         run: |
@@ -32,8 +38,6 @@ jobs:
             ${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-pip-
       - name: Install dependencies
         run: make install-ci-dependencies
-      - name: Install Feast
-        run : pip install feast==0.14.1
       - name: Start local Trino cluster using Docker
         run: make start-local-cluster
       - name: Unit tests
