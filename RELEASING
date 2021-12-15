@@ -1,0 +1,23 @@
+Releasing feast-trino
+
+1. Verify that the examples in the README.md are still valid against the latest stable API release.
+
+2. Check the Semantic Versioning page for info on how to version the new release: http://semver.org
+
+3. Update version in setup.py
+
+4. Update CHANGELOG entry for the release.
+
+5. Commit the changes
+    git commit -m "Release vX.Y.Z"
+
+6. Tag the release with the version
+    git tag -m "Release X.Y.Z" vX.Y.Z
+
+7. Push the changes to github
+    git push --tags origin main
+
+8. Shipit!
+
+9. Create a new release in github to highlight the main changes
+    https://github.com/Shopify/feast-trino/releases

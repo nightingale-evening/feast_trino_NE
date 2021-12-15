@@ -1,0 +1,7 @@
+== Unreleased
+
+== Version 1.0.0
+
+- Add Trino connectors ([#29](https://github.com/Shopify/feast-trino/pull/29))
+- Add universal integration tests ([#28](https://github.com/Shopify/feast-trino/pull/28))
+- Add upload dataframe to trino ([#14]((https://github.com/Shopify/feast-trino/pull/14)))

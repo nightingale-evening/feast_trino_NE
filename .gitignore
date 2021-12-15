@@ -6,6 +6,7 @@ build/
 dist/
 feast/
 feast_trino.egg-info/
+feature_repo/
 
 *.pyc
 .idea

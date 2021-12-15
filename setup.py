@@ -1,13 +1,13 @@
 from setuptools import setup
 
 NAME = "feast-trino"
-VERSION = "0.0.1-beta"
+VERSION = "1.0.0"
 DESCRIPTION = "Trino support for Feast offline store"
 with open("README.md", "r", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 INSTALL_REQUIRE = [
-    "feast>=0.12.0,<1.0.0",
+    "feast>=0.15.0,<1.0.0",
     "trino>=0.305.0,<0.400.0",
 ]
 
@@ -17,6 +17,7 @@ CI_REQUIRE = [
     "black==19.10b0",
     "isort>=5",
     "mypy==0.790",
+    "twine==3.7.1",
 ]
 
 setup(
