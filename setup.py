@@ -3,7 +3,7 @@ from setuptools import setup
 NAME = "feast-trino"
 VERSION = "1.0.0"
 DESCRIPTION = "Trino support for Feast offline store"
-with open("README.md", "r", encoding="utf-8") as f:
+with open("README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
 
 INSTALL_REQUIRE = [
