@@ -2,14 +2,6 @@
 
 Trino is not included in current [Feast](https://github.com/feast-dev/feast) roadmap, this project intends to add Trino support for Offline Store.  
 
-## Todo List
-- [DONE, none] ~~Create the open source repo~~
-- [Done, none] First stab at the Trino plugin
-- [Done, none] Add the ability to upload a pandas dataframe
-- [Done, none] Pass all integration tests and release a first version of Trino
-- [TODO, none] Add another connector like Hive
-- [TODO, v0.1.0-beta] Publish a beta release in Pypi
-
 ## Version compatibilities
 The feast-trino plugin is tested on the following versions of python [3.7, 3.8, 3.9]
 
@@ -17,8 +9,8 @@ Here is also how the current feast-trino plugin has been tested against differen
 
 | Feast-trino | Feast  | Trino |
 |-------------|--------|-------|
-| Beta        | 0.15.* | 364   |
-| Beta        | 0.16.* | 364   |
+| 1.0.0       | 0.15.* | 364   |
+| 1.0.0       | 0.16.* | 364   |
 
 ## Quickstart
 
@@ -40,7 +32,6 @@ pip install git+https://github.com/shopify/feast-trino.git
 
 ```shell
 feast init feature_repo
-cd feature_repo
 ```
 
 #### Edit `feature_store.yaml`
@@ -48,51 +39,71 @@ cd feature_repo
 set `offline_store` type to be `feast_trino.TrinoOfflineStore`
 
 ```yaml
-project: ...
-registry: ...
+project: feature_repo
+registry: data/registry.db
 provider: local
 offline_store:
-    type: feast_trino.TrinoOfflineStore
+    type: feast_trino.trino.TrinoOfflineStore
     host: localhost
     port: 8080
-    user: feast
-    catalog: default
+    catalog: memory
+    connector:
+        type: memory
 online_store:
-    type: sqlite
-    path: .tmp/database.db
+    path: data/online_store.db
 ```
 
 #### Create Trino Table
 <!-- TODO -->
 
-#### Edit `example.py`
+#### Edit `feature_repo/example.py`
 
 ```python
 # This is an example feature definition file
-
+import pandas as pd
 from google.protobuf.duration_pb2 import Duration
+from feast import Entity, Feature, FeatureView, FileSource, ValueType, FeatureStore
 
-from feast import Entity, Feature, FeatureView, ValueType
+from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 from feast_trino import TrinoSource
+from feast_trino.trino_utils import Trino
 
-# Read data from Trino table
-# Here we use a Query to reuse the original parquet data, 
-# but you can replace to your own Table or Query.
+store = FeatureStore(repo_path="feature_repo")
+
+client = Trino(
+    user="user",
+    catalog=store.config.offline_store.catalog,
+    host=store.config.offline_store.host,
+    port=store.config.offline_store.port,
+)
+client.execute_query("CREATE SCHEMA IF NOT EXISTS feast")
+client.execute_query("DROP TABLE IF EXISTS feast.driver_stats")
+
+input_df = pd.read_parquet("./feature_repo/data/driver_stats.parquet")
+upload_pandas_dataframe_to_trino(
+    client=client,
+    df=input_df,
+    table_ref="feast.driver_stats",
+    connector_args={"type": "memory"},
+)
+
+
+# Read data from parquet files. Parquet is convenient for local development mode. For
+# production, you can use your favorite DWH, such as BigQuery. See Feast documentation
+# for more info.
 driver_hourly_stats = TrinoSource(
-    query = """
-    SELECT Timestamp(cast(event_timestamp / 1000000 as bigint)) AS event_timestamp, 
-           driver_id, conv_rate, acc_rate, avg_daily_trips, 
-           Timestamp(cast(created / 1000000 as bigint)) AS created 
-    FROM feast.driver_stats
-    """,
     event_timestamp_column="event_timestamp",
+    table_ref="feast.driver_stats",
     created_timestamp_column="created",
 )
 
-# Define an entity for the driver.
-driver = Entity(name="driver_id", value_type=ValueType.INT64, description="driver id", )
+# Define an entity for the driver. You can think of entity as a primary key used to
+# fetch features.
+driver = Entity(name="driver_id", value_type=ValueType.INT64, description="driver id",)
 
-# Define FeatureView
+# Our parquet files contain sample data that includes a driver_id column, timestamps and
+# three feature column. Here we define a Feature View that will allow us to serve this
+# data to our model online.
 driver_hourly_stats_view = FeatureView(
     name="driver_hourly_stats",
     entities=["driver_id"],
@@ -103,20 +114,28 @@ driver_hourly_stats_view = FeatureView(
         Feature(name="avg_daily_trips", dtype=ValueType.INT64),
     ],
     online=True,
-    input=driver_hourly_stats,
+    batch_source=driver_hourly_stats,
     tags={},
 )
+store.apply([driver, driver_hourly_stats_view])
+
+# Run an historical retrieval query
+output_df = store.get_historical_features(
+    entity_df="""
+    SELECT
+        1004 AS driver_id,
+        TIMESTAMP '2021-11-21 15:00:00+00:00' AS event_timestamp
+    """,
+    features=["driver_hourly_stats:conv_rate"]
+).to_df()
+print(output_df.head())
 ```
 
 #### Apply the feature definitions
 
 ```shell
-feast apply
+python feature_repo/example.py
 ```
-
-#### Generating training data and so on
-
-The rest are as same as [Feast Quickstart](https://docs.feast.dev/quickstart#generating-training-data)
 
 
 ## Developing and Testing
