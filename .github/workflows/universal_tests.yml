@@ -34,6 +34,8 @@ jobs:
           key: ${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-pip-
+      - name: pip install feast
+        run: pip install feast==0.15.1
       - name: Install dependencies
         run: make install-ci-dependencies 
       - name: Install feast
