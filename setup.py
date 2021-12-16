@@ -17,7 +17,6 @@ CI_REQUIRE = [
     "black==19.10b0",
     "isort>=5",
     "mypy==0.790",
-    "twine==3.7.1",
 ]
 
 setup(
