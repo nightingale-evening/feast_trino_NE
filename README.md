@@ -16,6 +16,9 @@ Here is also how the current feast-trino plugin has been tested against differen
 
 #### Install feast-trino
 
+**WARNING**  
+There is currently an issue with pypi with the namespace `feast-trino` (see [PEP 541](https://github.com/pypa/pypi-support/issues/1549)). Until this is solved, you can install feast-trino by doing `pip install git+https://github.com/shopify/feast-trino.git@{SPECIFIC_VERSION}`. For example for `v1.0.0` you can run `pip install git+https://github.com/shopify/feast-trino.git@v1.0.0`
+
 - Install stable version
 
 ```shell
@@ -25,7 +28,7 @@ pip install feast-trino
 - Install develop version (not stable):
 
 ```shell
-pip install git+https://github.com/shopify/feast-trino.git 
+pip install git+https://github.com/shopify/feast-trino.git@main
 ```
 
 #### Create a feature repository
