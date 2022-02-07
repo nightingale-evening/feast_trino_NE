@@ -2,8 +2,9 @@
 .PHONY: build
 
 ROOT_DIR 	:= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-FEAST_VERSION ?= v0.15.1
+FEAST_VERSION ?= v0.16.1
 TRINO_VERSION ?= 364
+VERSION 	:=$(shell cat VERSION)
 
 format:
 	# Sort
@@ -34,6 +35,9 @@ test-python-universal-ci:
 build:
 	rm -rf dist/*
 	python setup.py sdist bdist_wheel
+
+release:
+	git tag -m "Release v${VERSION}" v${VERSION}
 
 install-feast-submodule:
 	cd ${ROOT_DIR}; git submodule add --force https://github.com/feast-dev/feast.git feast
