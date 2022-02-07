@@ -1,10 +1,12 @@
 from setuptools import setup
 
 NAME = "feast-trino"
-VERSION = "1.0.0"
 DESCRIPTION = "Trino support for Feast offline store"
 with open("README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
+
+with open("VERSION", "r") as f:
+    VERSION = f.read()
 
 INSTALL_REQUIRE = [
     "feast>=0.15.0,<1.0.0",
@@ -20,7 +22,7 @@ CI_REQUIRE = [
 ]
 
 setup(
-    name="feast-trino",
+    name=NAME,
     version=VERSION,
     author="Shopify",
     author_email="developers@shopify.com",
