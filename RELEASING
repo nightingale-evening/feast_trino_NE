@@ -4,20 +4,17 @@ Releasing feast-trino
 
 2. Check the Semantic Versioning page for info on how to version the new release: http://semver.org
 
-3. Update version in setup.py
+3. Update the version in `VERSION`
 
-4. Update CHANGELOG entry for the release.
+4. Once the PR is ready to be merged, cut a release by doing `PYPI_PASSWORD_SHOPIFY=SHOPIFY_PYPI_PWD make publish`
 
-5. Commit the changes
-    git commit -m "Release vX.Y.Z"
+4.1 If you need to make changes to the PR you can always unset the release by doing `make unset-release` and create a new one once ready to be merged
 
-6. Tag the release with the version
-    git tag -m "Release X.Y.Z" vX.Y.Z
+5. Merge the PR
 
-7. Push the changes to github
-    git push --tags origin main
+6. Go back to the `main` branch and pull the latest changes `git pull origin main`
 
-8. Shipit!
+7. Publish a new release on pypi by doing `make release`
 
-9. Create a new release in github to highlight the main changes
+8. Create a new release in github to highlight the main changes
     https://github.com/Shopify/feast-trino/releases
