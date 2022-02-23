@@ -35,7 +35,7 @@ setup(
         "Bug Tracker": "https://github.com/Shopify/feast-trino/issues",
     },
     license="MIT License",
-    packages=["feast_trino"],
+    packages=["feast_trino", "feast_trino.connectors"],
     install_requires=INSTALL_REQUIRE,
     extras_require={
         "ci": CI_REQUIRE,

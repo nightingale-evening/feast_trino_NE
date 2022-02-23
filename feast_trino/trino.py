@@ -19,6 +19,7 @@ from feast.repo_config import FeastConfigBaseModel, RepoConfig
 from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 from feast_trino.trino_source import TrinoSource
 from feast_trino.trino_utils import Trino
+from trino.auth import Authentication
 
 
 class TrinoOfflineStoreConfig(FeastConfigBaseModel):
@@ -122,6 +123,9 @@ class TrinoOfflineStore(OfflineStore):
         created_timestamp_column: Optional[str],
         start_date: datetime,
         end_date: datetime,
+        user: str = "user",
+        auth: Authentication = None,
+        http_scheme: str = "http",
     ) -> TrinoRetrievalJob:
         if not isinstance(data_source, TrinoSource):
             raise ValueError(
@@ -147,7 +151,7 @@ class TrinoOfflineStore(OfflineStore):
             join_key_columns + feature_name_columns + timestamp_columns
         )
 
-        client = _get_trino_client(config=config)
+        client = _get_trino_client(config=config, user=user, auth=auth, http_scheme=http_scheme)
 
         query = f"""
             SELECT
@@ -180,13 +184,16 @@ class TrinoOfflineStore(OfflineStore):
         registry: Registry,
         project: str,
         full_feature_names: bool = False,
+        user: str = "user",
+        auth: Authentication = None,
+        http_scheme: str = None,
     ) -> TrinoRetrievalJob:
         if not isinstance(config.offline_store, TrinoOfflineStoreConfig):
             raise ValueError(
                 f"This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
             )
 
-        client = _get_trino_client(config=config)
+        client = _get_trino_client(config=config, user=user, auth=auth, http_scheme=http_scheme)
 
         table_reference = _get_table_reference_for_new_entity(
             catalog=config.offline_store.catalog,
@@ -279,12 +286,14 @@ def _upload_entity_df_and_get_entity_schema(
     # TODO: Ensure that the table expires after some time
 
 
-def _get_trino_client(config: RepoConfig) -> Trino:
+def _get_trino_client(config: RepoConfig, user: str, auth: Authentication, http_scheme: str) -> Trino:
     client = Trino(
-        user="user",
+        user=user,
         catalog=config.offline_store.catalog,
         host=config.offline_store.host,
         port=config.offline_store.port,
+        auth=auth,
+        http_scheme=http_scheme,
     )
     return client
 
