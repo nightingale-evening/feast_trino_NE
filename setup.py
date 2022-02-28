@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 NAME = "feast-trino"
 DESCRIPTION = "Trino support for Feast offline store"
@@ -35,7 +35,7 @@ setup(
         "Bug Tracker": "https://github.com/Shopify/feast-trino/issues",
     },
     license="MIT License",
-    packages=["feast_trino", "feast_trino.connectors"],
+    packages=find_packages(exclude=['tests*']),
     install_requires=INSTALL_REQUIRE,
     extras_require={
         "ci": CI_REQUIRE,

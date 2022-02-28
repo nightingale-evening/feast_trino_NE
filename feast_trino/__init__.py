@@ -1,5 +1,14 @@
 import sys
 
+
+from .connectors.utils import (
+    pyarrow_schema_from_dataframe,
+    trino_table_schema_from_dataframe,
+    pandas_dataframe_fix_batches,
+    format_pandas_row,
+    format_datetime,
+)
+from .connectors.upload import upload_pandas_dataframe_to_trino
 from .trino import TrinoOfflineStore, TrinoOfflineStoreConfig
 from .trino_source import TrinoOptions, TrinoSource
 
@@ -15,4 +24,10 @@ __all__ = [
     "TrinoSource",
     "TrinoOfflineStoreConfig",
     "TrinoOfflineStore",
+    "pyarrow_schema_from_dataframe",
+    "trino_table_schema_from_dataframe",
+    "pandas_dataframe_fix_batches",
+    "format_pandas_row",
+    "format_datetime",
+    "upload_pandas_dataframe_to_trino",
 ]
