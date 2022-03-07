@@ -10,9 +10,9 @@ from feast_trino.trino_type_map import pa_to_trino_value_type
 
 CREATE_SCHEMA_QUERY_TEMPLATE = """
     CREATE TABLE IF NOT EXISTS {table_ref} (
-    {schema}
+        {schema}
+    )
     {with_statement}
-)
 """
 
 INSERT_ROWS_QUERY_TEMPLATE = """
