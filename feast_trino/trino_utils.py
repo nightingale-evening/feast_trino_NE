@@ -54,7 +54,7 @@ class Trino:
                 user=self.user,
                 catalog=self.catalog,
                 auth=self.auth,
-                http_scheme=self.http_scheme
+                http_scheme=self.http_scheme,
             ).cursor()
 
         return self._cursor

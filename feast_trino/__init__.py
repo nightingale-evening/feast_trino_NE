@@ -1,14 +1,13 @@
 import sys
 
-
+from .connectors.upload import upload_pandas_dataframe_to_trino
 from .connectors.utils import (
+    format_datetime,
+    format_pandas_row,
+    pandas_dataframe_fix_batches,
     pyarrow_schema_from_dataframe,
     trino_table_schema_from_dataframe,
-    pandas_dataframe_fix_batches,
-    format_pandas_row,
-    format_datetime,
 )
-from .connectors.upload import upload_pandas_dataframe_to_trino
 from .trino import TrinoOfflineStore, TrinoOfflineStoreConfig
 from .trino_source import TrinoOptions, TrinoSource
 

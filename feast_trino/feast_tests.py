@@ -19,7 +19,12 @@ from tests.integration.feature_repos.universal.data_source_creator import (
 class TrinoSourceCreator(DataSourceCreator):
     def __init__(self, project_name: str):
         self.project_name = project_name
-        self.client = Trino(user="user", catalog="memory", host="localhost", port=8080,)
+        self.client = Trino(
+            user="user",
+            catalog="memory",
+            host="localhost",
+            port=8080,
+        )
         self.tables_created: List[str] = []
 
     def create_data_source(
@@ -72,6 +77,7 @@ class TrinoSourceCreator(DataSourceCreator):
 FULL_REPO_CONFIGS = [
     IntegrationTestRepoConfig(),
     IntegrationTestRepoConfig(
-        provider="local", offline_store_creator=TrinoSourceCreator,
+        provider="local",
+        offline_store_creator=TrinoSourceCreator,
     ),
 ]

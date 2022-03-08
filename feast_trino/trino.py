@@ -7,6 +7,7 @@ import pandas as pd
 import pyarrow
 from pydantic import StrictStr
 from pydantic.typing import Literal
+from trino.auth import Authentication
 
 from feast.data_source import DataSource
 from feast.errors import InvalidEntityType
@@ -19,11 +20,10 @@ from feast.repo_config import FeastConfigBaseModel, RepoConfig
 from feast_trino.connectors.upload import upload_pandas_dataframe_to_trino
 from feast_trino.trino_source import TrinoSource
 from feast_trino.trino_utils import Trino
-from trino.auth import Authentication
 
 
 class TrinoOfflineStoreConfig(FeastConfigBaseModel):
-    """ Online store config for Trino """
+    """Online store config for Trino"""
 
     type: Literal[
         "feast_trino.trino.TrinoOfflineStore"
@@ -93,7 +93,11 @@ class TrinoRetrievalJob(RetrievalJob):
         """Returns the SQL query that will be executed in Trino to build the historical feature table"""
         return self._query
 
-    def to_trino(self, timeout: int = 1800, retry_cadence: int = 10,) -> Optional[str]:
+    def to_trino(
+        self,
+        timeout: int = 1800,
+        retry_cadence: int = 10,
+    ) -> Optional[str]:
         """
         Triggers the execution of a historical feature retrieval query and exports the results to a Trino table.
         Runs for a maximum amount of time specified by the timeout parameter (defaulting to 30 minutes).
@@ -151,7 +155,9 @@ class TrinoOfflineStore(OfflineStore):
             join_key_columns + feature_name_columns + timestamp_columns
         )
 
-        client = _get_trino_client(config=config, user=user, auth=auth, http_scheme=http_scheme)
+        client = _get_trino_client(
+            config=config, user=user, auth=auth, http_scheme=http_scheme
+        )
 
         query = f"""
             SELECT
@@ -193,7 +199,9 @@ class TrinoOfflineStore(OfflineStore):
                 f"This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
             )
 
-        client = _get_trino_client(config=config, user=user, auth=auth, http_scheme=http_scheme)
+        client = _get_trino_client(
+            config=config, user=user, auth=auth, http_scheme=http_scheme
+        )
 
         table_reference = _get_table_reference_for_new_entity(
             catalog=config.offline_store.catalog,
@@ -207,8 +215,8 @@ class TrinoOfflineStore(OfflineStore):
             connector=config.offline_store.connector,
         )
 
-        entity_df_event_timestamp_col = offline_utils.infer_event_timestamp_from_entity_df(
-            entity_schema
+        entity_df_event_timestamp_col = (
+            offline_utils.infer_event_timestamp_from_entity_df(entity_schema)
         )
 
         expected_join_keys = offline_utils.get_expected_join_keys(
@@ -221,7 +229,10 @@ class TrinoOfflineStore(OfflineStore):
 
         # Build a query context containing all information required to template the Trino SQL query
         query_context = offline_utils.get_feature_view_query_context(
-            feature_refs, feature_views, registry, project,
+            feature_refs,
+            feature_views,
+            registry,
+            project,
         )
 
         # Generate the Trino SQL query from the query context
@@ -286,7 +297,9 @@ def _upload_entity_df_and_get_entity_schema(
     # TODO: Ensure that the table expires after some time
 
 
-def _get_trino_client(config: RepoConfig, user: str, auth: Optional[Any], http_scheme: Optional[str]) -> Trino:
+def _get_trino_client(
+    config: RepoConfig, user: str, auth: Optional[Any], http_scheme: Optional[str]
+) -> Trino:
     client = Trino(
         user=user,
         catalog=config.offline_store.catalog,
