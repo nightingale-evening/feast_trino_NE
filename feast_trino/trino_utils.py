@@ -36,7 +36,7 @@ class Trino:
         user: Optional[str] = None,
         catalog: Optional[str] = None,
         auth: Optional[Any] = None,
-        http_scheme: str = "http",
+        http_scheme: str = None,
     ):
         self.host = host or os.getenv("TRINO_HOST")
         self.port = port or os.getenv("TRINO_PORT")

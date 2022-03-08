@@ -125,7 +125,7 @@ class TrinoOfflineStore(OfflineStore):
         end_date: datetime,
         user: str = "user",
         auth: Authentication = None,
-        http_scheme: str = "http",
+        http_scheme: str = None,
     ) -> TrinoRetrievalJob:
         if not isinstance(data_source, TrinoSource):
             raise ValueError(
@@ -286,7 +286,7 @@ def _upload_entity_df_and_get_entity_schema(
     # TODO: Ensure that the table expires after some time
 
 
-def _get_trino_client(config: RepoConfig, user: str, auth: Authentication, http_scheme: str) -> Trino:
+def _get_trino_client(config: RepoConfig, user: str, auth: Optional[Any], http_scheme: Optional[str]) -> Trino:
     client = Trino(
         user=user,
         catalog=config.offline_store.catalog,
