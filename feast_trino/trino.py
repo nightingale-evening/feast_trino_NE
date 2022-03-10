@@ -93,11 +93,7 @@ class TrinoRetrievalJob(RetrievalJob):
         """Returns the SQL query that will be executed in Trino to build the historical feature table"""
         return self._query
 
-    def to_trino(
-        self,
-        timeout: int = 1800,
-        retry_cadence: int = 10,
-    ) -> Optional[str]:
+    def to_trino(self, timeout: int = 1800, retry_cadence: int = 10,) -> Optional[str]:
         """
         Triggers the execution of a historical feature retrieval query and exports the results to a Trino table.
         Runs for a maximum amount of time specified by the timeout parameter (defaulting to 30 minutes).
@@ -215,8 +211,8 @@ class TrinoOfflineStore(OfflineStore):
             connector=config.offline_store.connector,
         )
 
-        entity_df_event_timestamp_col = (
-            offline_utils.infer_event_timestamp_from_entity_df(entity_schema)
+        entity_df_event_timestamp_col = offline_utils.infer_event_timestamp_from_entity_df(
+            entity_schema
         )
 
         expected_join_keys = offline_utils.get_expected_join_keys(
@@ -229,10 +225,7 @@ class TrinoOfflineStore(OfflineStore):
 
         # Build a query context containing all information required to template the Trino SQL query
         query_context = offline_utils.get_feature_view_query_context(
-            feature_refs,
-            feature_views,
-            registry,
-            project,
+            feature_refs, feature_views, registry, project,
         )
 
         # Generate the Trino SQL query from the query context
