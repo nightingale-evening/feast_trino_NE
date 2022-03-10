@@ -7,6 +7,7 @@ import pandas as pd
 import pyarrow
 from pydantic import StrictStr
 from pydantic.typing import Literal
+from trino.auth import Authentication
 
 from feast.data_source import DataSource
 from feast.errors import InvalidEntityType
@@ -22,7 +23,7 @@ from feast_trino.trino_utils import Trino
 
 
 class TrinoOfflineStoreConfig(FeastConfigBaseModel):
-    """ Online store config for Trino """
+    """Online store config for Trino"""
 
     type: Literal[
         "feast_trino.trino.TrinoOfflineStore"
@@ -122,6 +123,9 @@ class TrinoOfflineStore(OfflineStore):
         created_timestamp_column: Optional[str],
         start_date: datetime,
         end_date: datetime,
+        user: str = "user",
+        auth: Authentication = None,
+        http_scheme: str = None,
     ) -> TrinoRetrievalJob:
         if not isinstance(data_source, TrinoSource):
             raise ValueError(
@@ -147,7 +151,9 @@ class TrinoOfflineStore(OfflineStore):
             join_key_columns + feature_name_columns + timestamp_columns
         )
 
-        client = _get_trino_client(config=config)
+        client = _get_trino_client(
+            config=config, user=user, auth=auth, http_scheme=http_scheme
+        )
 
         query = f"""
             SELECT
@@ -180,13 +186,18 @@ class TrinoOfflineStore(OfflineStore):
         registry: Registry,
         project: str,
         full_feature_names: bool = False,
+        user: str = "user",
+        auth: Authentication = None,
+        http_scheme: str = None,
     ) -> TrinoRetrievalJob:
         if not isinstance(config.offline_store, TrinoOfflineStoreConfig):
             raise ValueError(
                 f"This function should be used with a TrinoOfflineStoreConfig object. Instead we have config.offline_store being '{type(config.offline_store)}'"
             )
 
-        client = _get_trino_client(config=config)
+        client = _get_trino_client(
+            config=config, user=user, auth=auth, http_scheme=http_scheme
+        )
 
         table_reference = _get_table_reference_for_new_entity(
             catalog=config.offline_store.catalog,
@@ -279,12 +290,16 @@ def _upload_entity_df_and_get_entity_schema(
     # TODO: Ensure that the table expires after some time
 
 
-def _get_trino_client(config: RepoConfig) -> Trino:
+def _get_trino_client(
+    config: RepoConfig, user: str, auth: Optional[Any], http_scheme: Optional[str]
+) -> Trino:
     client = Trino(
-        user="user",
+        user=user,
         catalog=config.offline_store.catalog,
         host=config.offline_store.host,
         port=config.offline_store.port,
+        auth=auth,
+        http_scheme=http_scheme,
     )
     return client
 
