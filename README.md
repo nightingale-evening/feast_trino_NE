@@ -190,7 +190,7 @@ Same applies for TRINO_VERSION when you start the local cluster `make start-loca
 
 There are currently issues installing the `grpcio` library on M1. See https://github.com/grpc/grpc/issues/25082
 
-To fix this error, Define these variables before running `pip install feast-trino`:
+To fix this error, define these variables before running `pip install feast-trino`:
 ```
 export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
 export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1
