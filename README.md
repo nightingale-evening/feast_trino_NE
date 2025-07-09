@@ -1,7 +1,3 @@
-# Feast Trino Support
-
-Trino is not included in current [Feast](https://github.com/feast-dev/feast) roadmap, this project intends to add Trino support for Offline Store.  
-
 ## Version compatibilities
 The feast-trino plugin is tested on the following versions of python [3.7, 3.8, 3.9]
 
@@ -162,9 +158,6 @@ make start-local-cluster
 make test
 make kill-local-cluster
 ```
-
-__Note: You can visit http://localhost:8080/ui/ to access the Web UI of Trino. This makes it easy to look for queries.__
-
 #### Testing against Feast universal suite
 
 ```shell
